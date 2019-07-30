@@ -178,7 +178,7 @@ print('This script will export your contacts to a tmp/export.csv. To see this on
 x = input("What is the account? (The SOMETHNING ins SOMETHING.activehosted.com)")
 account = x or "foundlingstheatrecompany"
 x = input("What is the API Key?")
-api_key= x or 'f348c3d5aa7af9fb8fb463a3f70179377ea36aa8b46d618e8f0ec65b236adac0014be746'
+api_key= x
 
 
 # In[193]:
