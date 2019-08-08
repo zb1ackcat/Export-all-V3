@@ -54,7 +54,7 @@ def get_field_values(url):
 
 def make_header():
     d = {'ID':'', 'Email':'', 'First Name':'', 'Last Name':'', 'Phone':'', 'Creation Date':'','Orginization Name': ''}
-    url = f'https://{account}.api-us1.com/api/3/fields/?api_key={api_key}&limit=100'
+    url = f'https://{account}.api-us1.com/api/3/fields/?api_key={api_key}'
     response = requests.request("GET", url)
     #print(response1)
     parsed = json.loads(response.text)
@@ -70,16 +70,20 @@ def make_header():
 
 def export_all_contacts():
     global count
+    global blank_dict
     offset = count
     url = f"https://{account}.api-us1.com/api/3/contacts/?api_key={api_key}&offset={offset}&limit=100"
     time.sleep(.2)
     response = requests.request("GET", url)
     parsed = json.loads(response.text)
     contact_data = parsed['contacts']
-    with open(f'/home/ubuntu/csvs/{account}_export.csv','a') as data:
+    with open(f'/csvs/{account}_export.csv','a') as data:
         for contact in contact_data:
+            print(blank_dict)
+            
+#             contact_row = blank_dict
             contact_row=dict((k, '') for k in blank_dict)
-#             print(f'This should be blank: {contact_row}')
+            print(f'This should be blank: {contact_row}')
             csvwriter = csv.writer(data)
             if count == 0:
                 x = make_header()
@@ -92,7 +96,7 @@ def export_all_contacts():
             z = get_tags(contact['links']['contactTags'])
             contact_row.update({'tags':z})
             csvwriter.writerow(contact_row.values())
-#             print(f'This should be full: {contact_row}')
+            print(f'This should be full: {contact_row}')
             count += 1
         wait_a_moment()
 
@@ -126,21 +130,14 @@ def get_number_of_con():
 
 
 def make_dict():
-    offset = 0
     d = {'id':'', 'email':'', 'firstName':'', 'lastName':'', 'phone':'', 'cdate':'','orgname': ''}
-    while offset == 0 or num_of_fields > offset:
-        url = f"https://{account}.api-us1.com/api/3/fields/?api_key={api_key}&offset={offset}"
-        response = requests.request("GET", url)
-        parsed = json.loads(response.text)
-        num_of_fields = int(parsed['meta']['total'])
-        print(num_of_fields)
-        print(offset)
-        fields = parsed['fields']
-        for x in fields:
-            d.update({x['id'] : ''})
-            print(d)
-        offset += 20
-        fields.clear()        
+    url = f"https://{account}.api-us1.com/api/3/fields/?api_key={api_key}"
+    response = requests.request("GET", url)
+    #print(response1)
+    parsed = json.loads(response.text)
+    fields = parsed['fields']
+    for x in fields:
+        d.update({x['id'] : ''})
     d.update({'tags':''})
     return d
 
@@ -174,6 +171,7 @@ def start_contacts():
     start = time.time()
     tag_dict = make_tag_dict()
     blank_dict = make_dict()
+    print(blank_dict)
     num_of_con = get_number_of_con()
     count= 0
     x = num_of_con * .015
@@ -186,7 +184,7 @@ def start_contacts():
 
 print('This script will export your contacts to a tmp/export.csv. To see this on a mac you will need to go to your hard drive and press CMD + Shift + "." to show hidden files. This takes aboout a minutes and a half per 100 contacts.')
 x = input("What is the account? (The SOMETHNING ins SOMETHING.activehosted.com)")
-account = x or "thehealthsciencesacademy"
+account = x or "foundlingstheatrecompany"
 x = input("What is the API Key?")
 api_key= x or "f348c3d5aa7af9fb8fb463a3f70179377ea36aa8b46d618e8f0ec65b236adac0014be746"
 x = input("What is your email?")
