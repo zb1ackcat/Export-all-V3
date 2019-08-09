@@ -90,7 +90,7 @@ def export_all_contacts():
             y = get_field_values(contact['links']['fieldValues'])
             contact_row.update(y)
             z = get_tags(contact['links']['contactTags'])
-            contact_row.update({'tags':''})
+            contact_row.update({'tags':z})
             csvwriter.writerow(contact_row.values())
 #             print(f'This should be full: {contact_row}')
             count += 1
@@ -101,38 +101,15 @@ def export_all_contacts():
 
 
 def wait_a_moment():
-    global count
     offset = count
-    while offset < num_of_con: 
-        offset = count
-        print(f"Currently on {offset} out of {num_of_con} contacts")
-        url = f"https://{account}.api-us1.com/api/3/contacts/?api_key={api_key}&offset={offset}&limit=100"
-        time.sleep(.2)
-        response = requests.request("GET", url)
-        parsed = json.loads(response.text)
-        contact_data = parsed['contacts']
-        with open(f'/home/ubuntu/csvs/{account}_export.csv','a') as data:
-            for contact in contact_data:
-                contact_row=dict((k, '') for k in blank_dict)
-                csvwriter = csv.writer(data)
-                if count == 0:
-                    x = make_header()
-                    header = x.keys()
-                    csvwriter.writerow(header)
-                contact_row.update((k, v) for k, v in contact.items() if k in contact_row)
-                #contact_row.update(contact)
-                y = get_field_values(contact['links']['fieldValues'])
-                contact_row.update(y)
-                z = get_tags(contact['links']['contactTags'])
-                contact_row.update({'tags':z})
-                csvwriter.writerow(contact_row.values())
-    #             print(f'This should be full: {contact_row}')
-                count += 1
-    
-    end = time.time()
-    total = (end - start)/60 
-    print(f"Finish in {total} minutes")
-    email_results.send_results(to,start,end,total)
+    print(f"Currently on {offset} out of {num_of_con} contacts")
+    if offset < num_of_con: 
+        export_all_contacts()
+    else:
+        end = time.time()
+        total = (end - start)/60 
+        print(f"Finish in {total} minutes")
+        email_results.send_results(to,start,end,total)
 
 
 # In[182]:
@@ -156,6 +133,8 @@ def make_dict():
         response = requests.request("GET", url)
         parsed = json.loads(response.text)
         num_of_fields = int(parsed['meta']['total'])
+        print(num_of_fields)
+        print(offset)
         fields = parsed['fields']
         for x in fields:
             d.update({x['id'] : ''})
@@ -196,6 +175,7 @@ def start_contacts():
     tag_dict = make_tag_dict()
     blank_dict = make_dict()
     num_of_con = get_number_of_con()
+    count= 0
     x = num_of_con * .015
     print(f'This will take about {x} minutes to complete')
     wait_a_moment()
@@ -211,8 +191,6 @@ x = input("What is the API Key?")
 api_key= x or "f348c3d5aa7af9fb8fb463a3f70179377ea36aa8b46d618e8f0ec65b236adac0014be746"
 x = input("What is your email?")
 to = x
-x = input("What is the count?")
-count = int(x) or 0
 
 
 # In[193]:
